@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screen Recorder</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: lighter;
+      }
+      body {
+        width: 100%;
+        height: 100vh;
+        place-items: center;
+        display: grid;
+      }
+
+      .box {
+        width: 80%;
+        height: auto;
+      }
+
+      .box video {
+        width: 100%;
+        height: 500px;
+        border: 1px solid rgb(0, 0, 0, 0.1);
+      }
+      h2 {
+        font-size: 2.1rem;
+        margin-bottom: 10px;
+      }
+
+      .btn_elements {
+        margin-top: 10px;
+        display: flex;
+      }
+      .btn_elements button {
+        padding: 10px 18px;
+        outline: none;
+        border: none;
+        cursor: pointer;
+        color: #fff;
+        transition-duration: 200ms;
+        margin-right: 10px;
+      }
+
+      .btn_elements button:first-child {
+        background-color: green;
+      }
+      .btn_elements button:nth-child(2) {
+        background-color: rgba(3, 89, 201, 0.589);
+        display: none;
+      }
+      .btn_elements button:hover {
+        opacity: 0.8;
+      }
+      .btn_elements a {
+        padding: 10px 18px;
+        outline: none;
+        border: none;
+        cursor: pointer;
+        color: #fff;
+        transition-duration: 200ms;
+        background-color: rgba(18, 46, 82, 0.589);
+        text-decoration: none;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h2>Screen Recorder</h2>
+      <video src="" class="video"></video>
+      <div class="btn_elements">
+        <button class="startRecorder">Start</button>
+        <button class="play">Play</button>
+        <a href="" class="downloadBtn">Download Video</a>
+      </div>
+    </div>
+
+    <script>
+      // console.log(`jay shree ram`);
+      let startRecorder = document.querySelector(".startRecorder");
+      let video = document.querySelector(".video");
+      let play = document.querySelector(".play");
+      let downloadBtn = document.querySelector(".downloadBtn");
+      let chunks = [];
+      startRecorder.addEventListener("click", async () => {
+        let stream = await navigator.mediaDevices.getDisplayMedia({
+          audio: true,
+          video: true,
+        });
+
+        let mime = MediaRecorder.isTypeSupported("video/webm; codecs=vp9")
+          ? "video/webm; codecs=vp9"
+          : "video/webm";
+
+        let mediaRecorder = new MediaRecorder(stream, {
+          mimeType: mime,
+        });
+
+        mediaRecorder.addEventListener("dataavailable", (e) => {
+          chunks.push(e.data);
+          if (e.data) {
+            play.style.display = "block";
+            downloadBtn.style.display = "block";
+          } else {
+            play.style.display = "none";
+            downloadBtn.style.display = "none";
+          }
+        });
+
+        let playStatus = false;
+        play.addEventListener("click", () => {
+          if (playStatus == false) {
+            playStatus = true;
+            video.play();
+            play.innerHTML = "Pause";
+          } else {
+            playStatus = false;
+            video.pause();
+            play.innerHTML = "Play";
+          }
+        });
+
+        video.addEventListener("ended", () => {
+          playStatus = false;
+          video.pause();
+          play.innerHTML = "Play";
+        });
+
+        mediaRecorder.addEventListener("stop", (e) => {
+          let blob = new Blob(chunks, {
+            type: chunks[0].type,
+          });
+          let url = URL.createObjectURL(blob);
+          video.src = url;
+
+          downloadBtn.addEventListener("click", () => {
+            let fileName = prompt("please enter your file name");
+            downloadBtn.href = url;
+            downloadBtn.download = `${fileName}.video.webm`;
+          });
+        });
+
+        mediaRecorder.start();
+      });
+    </script>
+  </body>
+</html>
